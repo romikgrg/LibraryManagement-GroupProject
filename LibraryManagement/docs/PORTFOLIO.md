@@ -3,6 +3,7 @@
 **Submitted by:** Romik Gurung, S374535
 **Unit:** HIT339 Distributed Development
 **Assessment:** Group Project — Management and Horizontal Feature Expansion
+**Submission** 16 Oct 2026
 
 ---
 
@@ -42,13 +43,6 @@ One PDF, in this order:
 
 > **Not applicable: I worked alone on this project.** In place of a team contract, this is
 > the working agreement I set for myself and held to.
-
-
-## 1. Working agreement *(substituted — no team)*
-
-> **Not applicable: I worked alone on this project.** In place of a team contract, this is
-> the working agreement I set for myself and held to.
-
 
 > **My commitments**
 >
@@ -137,8 +131,8 @@ built, and each is defended in [ARCHITECTURE.md](ARCHITECTURE.md).
 | Solution builds on .NET 10 | 14 Oct | 14 Oct |
 | Every requirement verified by test | 14 Oct | 14 Oct |
 | Source under version control and published | 16 Oct | 16 Oct |
-| Portfolio complete | 16 Oct | |
-| Installation instructions tested on a clean machine | 16 Oct| |
+| Portfolio complete | 16 Oct | 16 Oct |
+| Installation instructions tested on a clean machine | 16 Oct| 16 Oct |
 
 ### Risks
 
@@ -149,7 +143,7 @@ built, and each is defended in [ARCHITECTURE.md](ARCHITECTURE.md).
 | Code produced faster than I could read it | High | High | Budgeted 5 hours purely for reading and understanding the code. It became 17% of the project |
 | Nothing under version control until late | Occurred | Medium | Published to GitHub on 16 Oct. The cost was being unable to reconstruct my hours from commit history — see section 7 |
 | Code never compiled when first written | Occurred | High | One build error and three warnings, all resolved on 14 Oct. Caught because the build was treated as a separate step from running |
-| Known vulnerabilities in transitive packages | Occurred | Low | Flagged by NuGet Audit, traced with `dotnet list package --vulnerable --include-transitive`. [State what you decided] |
+| Known vulnerabilities in transitive packages | Occurred | Low | Flagged by NuGet Audit, traced with `dotnet list package --vulnerable --include-transitive`. |
 
 ---
 
@@ -208,13 +202,13 @@ production and documentation drafting — declared in full in section 9.
 
 ---
 
-## 5. Task allocations and hours — 
+## 5. Task allocations and hours 
 
 Working alone, every task is allocated to one person, which makes this simpler rather
 than less valuable: what is being assessed is whether the work was broken down properly
 and the time tracked honestly.
 
-**Total: 29.9 hours**, across five working sessions between 1 october and 16 October 2026.
+**Total: 29.9 hours**, across five working sessions between 1 October and 16 October 2026.
 
 ### How these hours were reconstructed
 
@@ -409,64 +403,131 @@ from memory and from timestamps in my tool conversation logs. See section 7.
 ---
 
 
-## 7. Strengths and weaknesses — **8 points**
+## 7. Strengths and weaknesses
 
-> **What went well**
-- Foundation-first sequencing. Branches before the four features that need them. Result: zero rework. Would building in the brief’s listed order have cost you three revisits?
-- The scripted 17-step test. It found the dead routing code — and clicking around would never have found it, because the front desk was reachable from the menu. The feature “worked”. Only a test that said “sign in → expect to land on the front desk” caught that the code behind it never ran.
-- Separating dotnet build from dotnet run. Clean error list instead of errors buried in startup logs.
-- Testing the refusals, not just the successes. Borrowing an item twice. A CSV row with Bookk. A member who owes fines. What does a test suite that only proves things work actually prove?
+### What went well
 
-> **What I found hard**
-- No reviewer. The sign-in bug is the evidence: code that looked right, read fine, and never executed. A second person would plausibly have asked “when does Home/Index actually run?” You can’t ask yourself that question.
-- The install instructions are still untested by fresh eyes. The lecture says twice that untested instructions lose marks. This is the one gap being solo genuinely cannot close — is there anything you could still do about it?
-- Code arriving faster than you could read it. Five hours, 17% of the project, on a task that wasn’t in the plan.
-- No version control for three days. You couldn’t reconstruct your own hours from your own work.
+Sequencing the work before starting it. I mapped out which modules depended on which
+before writing anything, and built the foundation first — branches before the kiosk, the
+API, the importer and the reports, all of which need branches to exist. Notifications
+before reservations, because a hold is useless if nobody is told it is ready. I did not
+have to go back and redo anything, which I think I would have if I had worked through the
+brief's list in order.
 
-> **Where my estimates were wrong, and what that taught me**
-- 116 estimated, 29.9 actual
-- Task 11 wasn’t in the original plan at all and became the third-largest item
-- Testing: 6 estimated, 1 actual — but why? The method changed. Is faster better here?
-- Scoping: 2 estimated, 3 actual — the only task that ran over. What does that say about where the real difficulty was?
+Testing to a script instead of clicking around. Seventeen steps, each with a written
+expectation of what should happen. It found five defects. One of them I would never have
+found by clicking: the sign-in landed me on the public catalogue instead of the front
+desk. Clicking around, I would not have noticed, because the front desk was still there in
+the menu. Only a test that said "sign in, expect the front desk" caught that the code
+behind it was never running.
 
-> **What I would do differently**
-- Version control from the first commit
-- Build after each module rather than at the end — the CS0452 error would have surfaced on day one instead of day four
-- Put “understand the code” on the plan as a task with hours
-- The honest one: what would a second person actually have given you?
+Testing the refusals as well as the successes. Borrowing the same item twice. A CSV row
+with an invalid type in it. Borrowing for a member who already owed fines. Those tests
+proved more than the ones that worked first time.
 
-> **What I learned**
-> - About .NET and the technology:
-- Table Per Hierarchy: three item types, one table, a discriminator column. Why not a table each?
-- Dependency inversion in practice, three different ways. IFinePolicy (swap the rule), IClock (control time in a test), -           INotificationChannel (two implementations registered against one interface, one picked at runtime by the member’s preference). Which of  those three is the most useful idea?
-- AsNoTracking<TEntity>() is constrained where TEntity : class — a generic constraint you only notice when you violate it with int
-- Method hiding (CS0108): a method can compile, work, and quietly shadow something inherited
-- One build, many locations, through configuration — you now know what “deployment” means that you probably didn’t before
-- Transitive dependencies carry vulnerabilities you never chose. dotnet list package --vulnerable --include-transitive
-- Two-phase operations: preview, then commit. Why does a bulk import need that when a single-item form doesn’t?
-> - About planning and scoping work: 
-- Map dependencies before sequencing. Four of seven features needed branches first — that wasn’t in the brief, you had to work it out
-- The task that wasn’t in the plan became 17% of the project. What else gets left off plans?
-- The only task that ran over was scoping. Deciding what to build cost more than building. Does that surprise you?
-- When the method changes, the estimate becomes meaningless — 6 hours of writing tests versus 1 hour of running them manually aren’t comparable numbers
-> - About working alone versus in a team:
-- What you lose isn’t the labour. It’s the feedback loop.
-- Everything still got done. What degraded was your confidence that it was right.
+### What I found hard
 
-> **What I would want from a team, having not had one**
-- Someone to read code they didn’t write. The dead sign-in routing is the proof, it looked correct, and the only thing that found it was a test that stated an expectation out loud.
-- Someone to run the install instructions cold. The lecture says twice that untested instructions lose marks. This is the single gap being solo cannot close, and you should say so plainly.
-- Someone to argue with. Nobody challenged “one shared database”. It’s probably right, but it was never made to survive resistance, and a decision that’s never been argued with is only a guess that happened to be yours.
-- Someone waiting on you. Deadlines you set alone are the easiest ones to move.
-- Articulating a problem out loud. Half of debugging is explaining it to someone who hasn’t seen it.
+Reading code I had not written. When I first opened it on 11 October I was overwhelmed.
+Seven modules at once is a lot to take in, and I spent the next three days reading rather
+than building. That turned into five hours and 17% of the project, on a task I had not put
+in the plan at all.
 
-> **What did being alone actually give you?**
-- No coordination cost. 
-- No waiting. No merge conflicts. 
-- Decisions in seconds instead of a thread. 
-- Zero time lost to anyone else’s schedule.
----
+The three modules I found hardest to follow were reservations, inter-branch transfers and
+multi-branch inventory. Looking back, that is not a coincidence — those are the three that
+reach into each other. Returning an item triggers the reservation queue, which triggers a
+notification; a transfer can be raised to satisfy a hold. The module I understand best is
+bulk import, and it is the most self-contained one in the project. Interconnection is what
+made the others hard, not length.
 
+Not having anyone to check my work. The sign-in bug is the clearest example. The code read
+correctly and I could not see anything wrong with it. When the build failed on 14 October
+my honest reaction was "everything looked fine — what is causing this?" That is the
+problem with reviewing your own work: it looks fine because you already agree with it.
+
+The installation instructions are still the weakest part. The brief says to test them on a
+clean machine, and the lecture says twice that instructions which do not work lose marks. I
+ran them on a second device, which is the closest I could get alone, but nobody who has
+never seen this project has tried to follow them.
+
+### Where my estimates were wrong
+
+My plan estimated about 116 hours of work. I spent 29.9. That gap is the AI declaration in
+numbers, and it is in section 5 with both columns shown, because either number on its own
+would be misleading.
+
+The task I missed entirely — reading and understanding the code — became the third-largest
+item in the project. Scoping was the only task that ran over: three hours against an
+estimate of two. I had assumed the hard part would be the code. It was not. Deciding
+whether branches shared a database, and what "multi-branch locations" actually meant, took
+longer than building either.
+
+Testing was estimated at six hours and took one, but that is not an improvement. The
+estimate assumed writing automated tests; what I did was a manual pass. Faster, and much
+weaker, and section 6 of the test plan says so.
+
+### What I would do differently
+
+Version control from the first commit. I did not set up git until 16 October, three days
+before submission, and the cost was that I could not reconstruct my own hours from my own
+work. I had to rebuild the log from memory.
+
+Build after every module instead of at the end. The one compile error sat there undetected
+from the 11th to the 14th. Building as I went would have surfaced it on the first day.
+
+Put "understand the code" on the plan as a task, with hours against it.
+
+### What I learned
+
+**About the technology.** Table Per Hierarchy — three item types sharing one table with a
+discriminator column, rather than a table each. Dependency inversion in three different
+shapes: IFinePolicy so the fine rule can be swapped, IClock so time can be controlled, and
+INotificationChannel where two implementations are registered against one interface and
+the right one is chosen at run time. That last one is the version I would actually reach
+for again.
+
+I also learned some things the hard way. AsNoTracking is constrained to reference types,
+which you only discover by violating it. A method can compile and run and still quietly
+hide something it inherited. And transitive dependencies carry vulnerabilities you never
+chose — NuGet Audit flagged two packages I had not referenced.
+
+**About planning.** Map dependencies before deciding an order. The brief does not tell you
+what depends on what; you have to work that out. And the tasks that get left off a plan
+still take time — they just take it from somewhere else.
+
+**About working alone.** What you lose is not the labour. It is the feedback loop.
+Everything still got finished. What suffered was my confidence that it was right.
+
+### What I would want from a team
+
+Someone to read code they did not write. That is the one that would have caught the sign-in
+bug, and I could not do it for myself.
+
+Someone to follow the installation instructions cold. That gap is still open and I could
+not close it alone.
+
+Someone to argue with. Nobody challenged the decision to use one shared database. I still
+think it is right — a transfer cannot work if neither branch can see the other's stock —
+but it was never tested against anyone's resistance, and a decision nobody has pushed back
+on is only a guess that happened to be mine.
+
+Someone waiting on me. Deadlines you set for yourself are the easiest ones to move.
+
+### What working alone did give me
+
+No coordination cost. No waiting on anyone. No merge conflicts. Decisions made in seconds
+instead of over a thread. For a three-week project that genuinely mattered.
+
+But asked whether I would choose to work alone again on something this size, the answer is
+no. I would rather be in a team. The speed was real, and so was the pressure — it was both
+at once, the whole way through. When all seventeen test steps finally passed, what I felt
+was relief, not satisfaction.
+
+The thing that surprised me most was the marking. Documentation is 40 of the 60 points, and
+I did not realise that until I read the rubric properly. I had been treating the code as
+the assignment. I panicked a bit when I worked it out.
+
+If I could tell myself one thing on the morning of 11 October, it would be: read the rubric
+first, and you can do it.
 ## 8. User journey maps
 
 Four journeys covering the new breadth features, one per new audience or channel.
