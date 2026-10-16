@@ -1,0 +1,11 @@
+@model LibraryManagement.Models.ItemStatus
+@{
+    var css = Model switch
+    {
+        ItemStatus.Available => "status status-available",
+        ItemStatus.Borrowed => "status status-borrowed",
+        ItemStatus.Damaged => "status status-damaged",
+        _ => "status status-destroyed"
+    };
+}
+<span class="@css">@Model</span>

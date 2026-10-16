@@ -1,0 +1,62 @@
+@model TransferRequestViewModel
+@{
+    ViewData["Title"] = "Request an item";
+}
+
+<h1 class="h2 mb-3">Request an item from another branch</h1>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form asp-action="Request" method="post" class="form-panel">
+            <div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="LibraryCode" class="form-label"></label>
+                <input asp-for="LibraryCode" class="form-control form-control-lg" autofocus
+                       placeholder="BK-0003" />
+                <div class="form-text">The code on the item, wherever in the network it is sitting.</div>
+                <span asp-validation-for="LibraryCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ToBranchId" class="form-label"></label>
+                <select asp-for="ToBranchId" class="form-select form-select-lg">
+                    <option value="">Choose a branch</option>
+                    @foreach (var branch in Model.Branches)
+                    {
+                        <option value="@branch.Id">@branch.DisplayName</option>
+                    }
+                </select>
+                <span asp-validation-for="ToBranchId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Reason" class="form-label"></label>
+                <input asp-for="Reason" class="form-control"
+                       placeholder="Requested by a member, stock rebalancing, display" />
+                <span asp-validation-for="Reason" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Raise the request</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Back to transfers</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <aside class="info-card">
+            <h2 class="h6">How a transfer runs</h2>
+            <ol class="small mb-0 ps-3">
+                <li>You raise the request here.</li>
+                <li>The holding branch takes the item off the shelf and dispatches it.</li>
+                <li>It shows as in transit and cannot be lent by either branch.</li>
+                <li>You check it in when it arrives, and it joins your shelves.</li>
+            </ol>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

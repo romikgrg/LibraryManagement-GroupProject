@@ -1,0 +1,113 @@
+@model ItemSearchViewModel
+@{
+    ViewData["Title"] = "Collection";
+    var selectedType = Model.Type ?? string.Empty;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Collection</h1>
+        <p class="text-muted mb-0">Add, correct and retire the items the library lends.</p>
+    </div>
+    <div class="btn-group">
+        <a class="btn btn-primary" asp-action="Create" asp-route-kind="@ItemKind.Book">Add a book</a>
+        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Choose another type</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" asp-action="Create" asp-route-kind="@ItemKind.Music">Add music</a></li>
+            <li><a class="dropdown-item" asp-action="Create" asp-route-kind="@ItemKind.Toy">Add a toy</a></li>
+        </ul>
+    </div>
+</div>
+
+<form method="get" class="filter-bar row g-2 align-items-end">
+    <div class="col-12 col-md-5">
+        <label class="form-label" for="query">Search</label>
+        <input class="form-control" type="search" id="query" name="query" value="@Model.Query"
+               placeholder="Name, code, author or artist" />
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="type">Type</label>
+        <select class="form-select" id="type" name="type">
+            <option value="">All types</option>
+            <option value="Book" selected="@(selectedType == "Book")">Books</option>
+            <option value="Music" selected="@(selectedType == "Music")">Music</option>
+            <option value="Toy" selected="@(selectedType == "Toy")">Toys</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="status">Status</label>
+        <select class="form-select" id="status" name="status">
+            <option value="">All statuses</option>
+            @foreach (var status in Enum.GetValues<ItemStatus>())
+            {
+                <option value="@status" selected="@(Model.Status == status)">@status</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="branchId">Branch</label>
+        <select class="form-select" id="branchId" name="branchId">
+            <option value="">All branches</option>
+            @foreach (var branch in Model.Branches)
+            {
+                <option value="@branch.Id" selected="@(Model.BranchId == branch.Id)">@branch.DisplayName</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <button class="btn btn-outline-secondary w-100" type="submit">Filter</button>
+    </div>
+</form>
+
+@if (!Model.Results.Any())
+{
+    <div class="empty-state mt-4">
+        <h2 class="h5">No items match those filters</h2>
+        <p class="mb-0 text-muted">Clear the search to see the whole collection.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive mt-4">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Name</th>
+                <th scope="col">Type</th>
+                <th scope="col">Details</th>
+                <th scope="col">Held at</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Results)
+            {
+                <tr>
+                    <td><span class="code-line">@item.LibraryCode</span></td>
+                    <td>@item.Name</td>
+                    <td><span class="kind-tag">@item.ItemType</span></td>
+                    <td class="small text-muted">@item.Summary</td>
+                    <td class="small">
+                        @item.Branch?.Code
+                        @if (item.IsAwayFromOwningBranch)
+                        {
+                            <span class="status status-borrowed ms-1">Visiting</span>
+                        }
+                    </td>
+                    <td><partial name="_StatusBadge" model="item.Status" /></td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id">View</a>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

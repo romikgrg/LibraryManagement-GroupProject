@@ -1,0 +1,65 @@
+@model Borrower
+<div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="MembershipNumber" class="form-label"></label>
+        <input asp-for="MembershipNumber" class="form-control" />
+        <span asp-validation-for="MembershipNumber" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="FirstName" class="form-label"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="LastName" class="form-label"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" type="email" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Address" class="form-label"></label>
+        <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="JoinedOn" class="form-label"></label>
+        <input asp-for="JoinedOn" class="form-control" type="date" />
+        <span asp-validation-for="JoinedOn" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="HomeBranchId" class="form-label"></label>
+        <select asp-for="HomeBranchId" class="form-select">
+            <option value="">Choose a branch</option>
+            @foreach (var branch in (ViewData["Branches"] as IReadOnlyList<Branch> ?? Array.Empty<Branch>()))
+            {
+                <option value="@branch.Id">@branch.DisplayName</option>
+            }
+        </select>
+        <div class="form-text">Where their holds are collected from.</div>
+        <span asp-validation-for="HomeBranchId" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="PreferredChannel" class="form-label"></label>
+        <select asp-for="PreferredChannel"
+                asp-items="Html.GetEnumSelectList<NotificationChannel>()" class="form-select"></select>
+        <div class="form-text">Falls back to the other channel if this one has no details.</div>
+    </div>
+    <div class="col-12 d-flex align-items-end">
+        <div class="form-check">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label"></label>
+            <div class="form-text">Suspended members keep their history but cannot borrow.</div>
+        </div>
+    </div>
+</div>

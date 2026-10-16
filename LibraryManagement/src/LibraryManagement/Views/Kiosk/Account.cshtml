@@ -1,0 +1,103 @@
+@model KioskViewModel
+@{
+    ViewData["Title"] = "My account";
+    ViewBag.KioskBranch = Model.Branch;
+    var today = DateTime.Today;
+}
+
+<h1 class="kiosk-title">My account</h1>
+
+@if (!string.IsNullOrWhiteSpace(Model.Problem))
+{
+    <div class="kiosk-banner kiosk-banner-bad">
+        <span class="kiosk-banner-icon" aria-hidden="true">!</span>
+        <span>@Model.Problem</span>
+    </div>
+}
+
+@if (!Model.HasMember)
+{
+    <form asp-action="Account" method="post" class="kiosk-form">
+        <label class="kiosk-label" for="membershipNumber">Scan your library card</label>
+        <input class="kiosk-input" id="membershipNumber" name="membershipNumber"
+               value="@Model.MembershipNumber" autofocus autocomplete="off" placeholder="M-1001" />
+        <button type="submit" class="kiosk-button">Show my account</button>
+    </form>
+}
+else
+{
+    <p class="kiosk-greeting">Hello, @Model.Member!.FirstName.</p>
+
+    <div class="kiosk-summary">
+        <div class="kiosk-stat">
+            <span class="kiosk-stat-number">@Model.MemberLoans.Count</span>
+            <span class="kiosk-stat-label">items out</span>
+        </div>
+        <div class="kiosk-stat @(Model.OverdueCount > 0 ? "kiosk-stat-alert" : "")">
+            <span class="kiosk-stat-number">@Model.OverdueCount</span>
+            <span class="kiosk-stat-label">overdue</span>
+        </div>
+        <div class="kiosk-stat @(Model.OutstandingFines > 0 ? "kiosk-stat-alert" : "")">
+            <span class="kiosk-stat-number">@Model.OutstandingFines.ToString("C")</span>
+            <span class="kiosk-stat-label">owing</span>
+        </div>
+        <div class="kiosk-stat">
+            <span class="kiosk-stat-number">@Model.MemberHolds.Count</span>
+            <span class="kiosk-stat-label">on hold</span>
+        </div>
+    </div>
+
+    @if (Model.MemberLoans.Any())
+    {
+        <h2 class="kiosk-subtitle">What you have out</h2>
+        <ul class="kiosk-list">
+            @foreach (var loan in Model.MemberLoans)
+            {
+                var late = loan.DueOn.Date < today;
+                <li class="@(late ? "kiosk-list-alert" : "")">
+                    <span class="kiosk-list-main">@loan.Item?.Name</span>
+                    <span class="kiosk-list-sub">
+                        @if (late)
+                        {
+                            <text>Was due @loan.DueOn.ToString("d MMMM")</text>
+                        }
+                        else
+                        {
+                            <text>Due back @loan.DueOn.ToString("dddd d MMMM")</text>
+                        }
+                    </span>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (Model.MemberHolds.Any())
+    {
+        <h2 class="kiosk-subtitle">Waiting for you</h2>
+        <ul class="kiosk-list">
+            @foreach (var hold in Model.MemberHolds)
+            {
+                <li>
+                    <span class="kiosk-list-main">@hold.Item?.Name</span>
+                    <span class="kiosk-list-sub">
+                        @if (hold.Status == ReservationStatus.Ready)
+                        {
+                            <text>Ready to collect at @hold.CollectionBranch?.Name until @hold.ExpiresOn?.ToString("d MMMM")</text>
+                        }
+                        else
+                        {
+                            <text>In the queue, collecting from @hold.CollectionBranch?.Name</text>
+                        }
+                    </span>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (!Model.MemberLoans.Any() && !Model.MemberHolds.Any())
+    {
+        <p class="kiosk-hint">You have nothing out and nothing waiting. Have a browse.</p>
+    }
+
+    <a class="kiosk-secondary" asp-action="Index">Done</a>
+}

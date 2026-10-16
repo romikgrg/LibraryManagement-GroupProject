@@ -1,0 +1,93 @@
+@model ReturnViewModel
+@{
+    ViewData["Title"] = "Return an item";
+    var loan = Model.CompletedLoan;
+}
+
+<h1 class="h2 mb-3">Return an item</h1>
+
+@if (loan is not null)
+{
+    var daysLate = loan.DaysOverdue(DateTime.Today);
+    <div class="receipt mb-4">
+        <h2 class="h5 mb-2">@loan.Item?.Name is back</h2>
+        <dl class="row detail-list">
+            <dt class="col-sm-4">Member</dt>
+            <dd class="col-sm-8">@loan.Borrower?.FullName (@loan.Borrower?.MembershipNumber)</dd>
+            <dt class="col-sm-4">Due</dt>
+            <dd class="col-sm-8">@loan.DueOn.ToString("d MMM yyyy")</dd>
+            <dt class="col-sm-4">Returned</dt>
+            <dd class="col-sm-8">@loan.ReturnedOn?.ToString("d MMM yyyy")</dd>
+            <dt class="col-sm-4">Condition</dt>
+            <dd class="col-sm-8"><partial name="_StatusBadge" model="loan.Item!.Status" /></dd>
+            <dt class="col-sm-4">Fine</dt>
+            <dd class="col-sm-8">
+                @if (loan.FineAmount > 0)
+                {
+                    <strong>@loan.FineAmount.ToString("C")</strong>
+                    <span class="text-muted">for @daysLate day@(daysLate == 1 ? "" : "s") late</span>
+                }
+                else
+                {
+                    <span>No fine, returned on time.</span>
+                }
+            </dd>
+        </dl>
+
+        @if (loan.FineAmount > 0 && !loan.FinePaid)
+        {
+            <form asp-action="PayFine" method="post" class="d-inline">
+                <input type="hidden" name="loanId" value="@loan.Id" />
+                <input type="hidden" name="returnUrl" value="@Url.Action("Index")" />
+                <button type="submit" class="btn btn-primary btn-sm">Take payment of @loan.FineAmount.ToString("C")</button>
+            </form>
+        }
+        <a class="btn btn-outline-secondary btn-sm" asp-action="Return">Return another item</a>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form asp-action="Return" method="post" class="form-panel">
+            <div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="LibraryCode" class="form-label"></label>
+                <input asp-for="LibraryCode" class="form-control form-control-lg" autofocus
+                       placeholder="Scan or type the code on the item" />
+                <span asp-validation-for="LibraryCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Condition" class="form-label"></label>
+                <select asp-for="Condition" asp-items="Html.GetEnumSelectList<ReturnCondition>()" class="form-select"></select>
+                <div class="form-text">Anything other than good takes the item off the shelf until it is dealt with.</div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="2"
+                          placeholder="Water damage to the last few pages, two pieces missing, ..."></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Check it in</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Back to the desk</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <aside class="info-card">
+            <h2 class="h6">Late returns</h2>
+            <p class="small mb-0">
+                The fine is worked out automatically from the due date. Take payment on the
+                receipt above, or leave it owing and it will show on the member's record.
+            </p>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

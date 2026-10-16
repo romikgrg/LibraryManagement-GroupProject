@@ -1,0 +1,18 @@
+@model Branch
+@{
+    ViewData["Title"] = "Add a branch";
+}
+
+<h1 class="h2 mb-3">Add a branch</h1>
+
+<form asp-action="Create" method="post" class="form-panel">
+    <partial name="_BranchFormFields" model="Model" />
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Add branch</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

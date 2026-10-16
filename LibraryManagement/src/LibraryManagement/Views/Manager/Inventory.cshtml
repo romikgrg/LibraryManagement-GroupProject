@@ -1,0 +1,105 @@
+@model IReadOnlyList<LibraryManagement.Services.BranchInventory>
+@{
+    ViewData["Title"] = "Inventory health";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Inventory health</h1>
+        <p class="text-muted mb-0">Where the stock is, and how much of it a member could actually take home.</p>
+    </div>
+    <div class="export-row mb-0">
+        <span class="label">Export</span>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="InventoryHealth" asp-route-format="csv">CSV</a>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="InventoryHealth" asp-route-format="pdf">PDF</a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <h2 class="h5">No branches to report on</h2>
+        <p class="mb-0 text-muted">Add a branch to start tracking stock.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive mb-4">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Branch</th>
+                <th scope="col">Held</th>
+                <th scope="col">Available</th>
+                <th scope="col">On loan</th>
+                <th scope="col">In transit</th>
+                <th scope="col">Holds shelf</th>
+                <th scope="col">Out of action</th>
+                <th scope="col">Visiting</th>
+                <th scope="col">Away</th>
+                <th scope="col">Availability</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var inventory in Model)
+            {
+                // Captured once and null-checked, rather than repeating the
+                // null-forgiving operator on every use.
+                var branch = inventory.Branch;
+                <tr>
+                    <td>
+                        @if (branch is not null)
+                        {
+                            <a asp-controller="Branches" asp-action="Details" asp-route-id="@branch.Id">
+                                @branch.Name
+                            </a>
+                            <span class="code-line">@branch.Code</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Unknown branch</span>
+                        }
+                    </td>
+                    <td>@inventory.HeldHere</td>
+                    <td>@inventory.Available</td>
+                    <td>@inventory.OnLoan</td>
+                    <td>@inventory.InTransit</td>
+                    <td>@inventory.AwaitingCollection</td>
+                    <td>
+                        @if (inventory.OutOfAction > 0)
+                        {
+                            <span class="status status-damaged">@inventory.OutOfAction</span>
+                        }
+                        else
+                        {
+                            <span>0</span>
+                        }
+                    </td>
+                    <td>@inventory.VisitingStock</td>
+                    <td>@inventory.OwnedButAway</td>
+                    <td>
+                        <div class="bar-row" style="grid-template-columns: 1fr 3rem;">
+                            <span class="bar-track">
+                                <span class="bar-fill" style="width:@inventory.AvailabilityRate.ToString("0.0")%"></span>
+                            </span>
+                            <span class="bar-value">@inventory.AvailabilityRate.ToString("0.0")%</span>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="info-card">
+        <h2 class="h6">Reading this table</h2>
+        <ul class="small mb-0 ps-3">
+            <li><strong>Held</strong> is what is physically at that branch, whoever owns it.</li>
+            <li><strong>Visiting</strong> is stock sitting there that belongs to another branch.</li>
+            <li><strong>Away</strong> is stock that branch owns but which is sitting somewhere else.</li>
+            <li><strong>Availability</strong> is the share of what is held that a member could borrow today.</li>
+        </ul>
+    </div>
+}

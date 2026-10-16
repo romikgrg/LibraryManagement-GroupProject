@@ -1,0 +1,92 @@
+@model IReadOnlyList<Borrower>
+@{
+    ViewData["Title"] = "Members";
+    var query = ViewData["Query"] as string;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Members</h1>
+        <p class="text-muted mb-0">Membership details for everyone who borrows from the library.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Add a member</a>
+</div>
+
+<form method="get" class="filter-bar row g-2 align-items-end">
+    <div class="col-12 col-md-6">
+        <label class="form-label" for="query">Search</label>
+        <input class="form-control" type="search" id="query" name="query" value="@query"
+               placeholder="Name, membership number, email or phone" />
+    </div>
+    <div class="col-12 col-md-2">
+        <button class="btn btn-outline-secondary w-100" type="submit">Search</button>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="empty-state mt-4">
+        <h2 class="h5">No members found</h2>
+        <p class="mb-0 text-muted">Add a member to start lending to them.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive mt-4">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Membership</th>
+                <th scope="col">Name</th>
+                <th scope="col">Contact</th>
+                <th scope="col">On loan</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var borrower in Model)
+            {
+                var openLoans = borrower.Loans.Count(l => l.ReturnedOn == null);
+                var owing = borrower.Loans.Where(l => !l.FinePaid).Sum(l => l.FineAmount);
+                <tr>
+                    <td><span class="code-line">@borrower.MembershipNumber</span></td>
+                    <td>@borrower.FullName</td>
+                    <td class="small text-muted">
+                        @if (!string.IsNullOrWhiteSpace(borrower.Email))
+                        {
+                            <div>@borrower.Email</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(borrower.Phone))
+                        {
+                            <div>@borrower.Phone</div>
+                        }
+                    </td>
+                    <td>
+                        @openLoans
+                        @if (owing > 0)
+                        {
+                            <span class="status status-damaged ms-1">@owing.ToString("C") owing</span>
+                        }
+                    </td>
+                    <td>
+                        @if (borrower.IsActive)
+                        {
+                            <span class="status status-available">Active</span>
+                        }
+                        else
+                        {
+                            <span class="status status-destroyed">Suspended</span>
+                        }
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@borrower.Id">View</a>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@borrower.Id">Edit</a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@borrower.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

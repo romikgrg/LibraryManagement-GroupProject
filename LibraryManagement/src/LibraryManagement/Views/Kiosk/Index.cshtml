@@ -1,0 +1,24 @@
+@model KioskViewModel
+@{
+    ViewData["Title"] = "Welcome";
+    ViewBag.KioskBranch = Model.Branch;
+}
+
+<h1 class="kiosk-title">What would you like to do?</h1>
+
+<div class="kiosk-choices">
+    <a class="kiosk-choice" asp-action="Borrow">
+        <span class="kiosk-choice-title">Borrow an item</span>
+        <span class="kiosk-choice-hint">Scan your card, then scan what you want to take home</span>
+    </a>
+
+    <a class="kiosk-choice" asp-action="Account">
+        <span class="kiosk-choice-title">Check my account</span>
+        <span class="kiosk-choice-hint">What you have out, what is waiting, what you owe</span>
+    </a>
+
+    <a class="kiosk-choice" asp-action="Find">
+        <span class="kiosk-choice-title">Look up an item</span>
+        <span class="kiosk-choice-hint">See whether something is on the shelf and where</span>
+    </a>
+</div>

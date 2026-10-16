@@ -1,0 +1,68 @@
+@model PlaceReservationViewModel
+@{
+    ViewData["Title"] = "Place a hold";
+}
+
+<h1 class="h2 mb-3">Place a hold</h1>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form asp-action="Place" method="post" class="form-panel">
+            <div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="LibraryCode" class="form-label"></label>
+                <input asp-for="LibraryCode" class="form-control form-control-lg" autofocus
+                       placeholder="The code on the item" />
+                <span asp-validation-for="LibraryCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BorrowerId" class="form-label"></label>
+                <select asp-for="BorrowerId" class="form-select form-select-lg">
+                    <option value="">Choose a member</option>
+                    @foreach (var borrower in Model.Borrowers)
+                    {
+                        <option value="@borrower.Id">@borrower.FullName (@borrower.MembershipNumber)</option>
+                    }
+                </select>
+                <span asp-validation-for="BorrowerId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CollectionBranchId" class="form-label"></label>
+                <select asp-for="CollectionBranchId" class="form-select">
+                    <option value="">Their home branch</option>
+                    @foreach (var branch in Model.Branches)
+                    {
+                        <option value="@branch.Id">@branch.DisplayName</option>
+                    }
+                </select>
+                <div class="form-text">Leave this alone unless they want to collect somewhere else.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Join the queue</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Back to holds</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <aside class="info-card">
+            <h2 class="h6">What can be held</h2>
+            <p class="small mb-2">
+                Items that are out on loan or away being repaired. Something sitting on the shelf
+                can simply be borrowed instead.
+            </p>
+            <p class="small mb-0">
+                When it comes back, the first person in the queue is told automatically and the item
+                goes onto the holds shelf for them.
+            </p>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

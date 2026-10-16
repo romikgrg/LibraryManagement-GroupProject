@@ -1,0 +1,20 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = Model.StatusCode.HasValue ? $"Error {Model.StatusCode}" : "Error";
+}
+
+<div class="row">
+    <div class="col-lg-7">
+        <h1 class="display-6">@(Model.StatusCode.HasValue ? $"Error {Model.StatusCode}" : "Something went wrong")</h1>
+        <p class="lead">@Model.Message</p>
+
+        @if (Model.ShowRequestId)
+        {
+            <p class="text-muted small">
+                Quote this reference if you report the problem: <code>@Model.RequestId</code>
+            </p>
+        }
+
+        <a class="btn btn-primary" asp-controller="Catalogue" asp-action="Index">Back to the catalogue</a>
+    </div>
+</div>

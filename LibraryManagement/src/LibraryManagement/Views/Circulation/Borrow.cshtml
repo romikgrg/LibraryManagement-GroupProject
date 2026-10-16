@@ -1,0 +1,56 @@
+@model BorrowViewModel
+@{
+    ViewData["Title"] = "Borrow an item";
+}
+
+<h1 class="h2 mb-3">Borrow an item</h1>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form asp-action="Borrow" method="post" class="form-panel">
+            <div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="LibraryCode" class="form-label"></label>
+                <input asp-for="LibraryCode" class="form-control form-control-lg" autofocus
+                       placeholder="Scan or type the code on the item" />
+                <span asp-validation-for="LibraryCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BorrowerId" class="form-label"></label>
+                <select asp-for="BorrowerId" class="form-select form-select-lg">
+                    <option value="">Choose a member</option>
+                    @foreach (var borrower in Model.Borrowers)
+                    {
+                        <option value="@borrower.Id">@borrower.FullName (@borrower.MembershipNumber)</option>
+                    }
+                </select>
+                <span asp-validation-for="BorrowerId" class="text-danger"></span>
+                <div class="form-text">
+                    Not on the list? <a asp-controller="Borrowers" asp-action="Create">Add the member first</a>.
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Lend it out</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Back to the desk</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <aside class="info-card">
+            <h2 class="h6">Before you lend</h2>
+            <ul class="small mb-0 ps-3">
+                <li>The item has to be marked available, not damaged or already out.</li>
+                <li>The member has to be active and under their limit.</li>
+                <li>Borrowing is blocked while a member owes too much in fines.</li>
+            </ul>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

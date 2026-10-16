@@ -1,0 +1,20 @@
+@model ItemFormViewModel
+@{
+    ViewData["Title"] = "Add an item";
+}
+
+<h1 class="h2 mb-3">Add an item</h1>
+
+<form asp-action="Create" method="post" class="form-panel">
+    <partial name="_ItemFormFields" model="Model" />
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Add to the collection</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/item-form.js" asp-append-version="true"></script>
+}

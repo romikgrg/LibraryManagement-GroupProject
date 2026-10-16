@@ -1,0 +1,106 @@
+@model CatalogueViewModel
+@{
+    ViewData["Title"] = "Search the catalogue";
+    var selectedType = Model.Type ?? string.Empty;
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <h1 class="h2 mb-1">What are you looking for?</h1>
+        <p class="text-muted">Search every book, music recording and toy in the collection.</p>
+
+        <form method="get" asp-action="Index" class="search-panel">
+            <div class="row g-2">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="query">Title, creator or code</label>
+                    <input class="form-control form-control-lg" type="search" id="query" name="query"
+                           value="@Model.Query" placeholder="Storm Boy, Yothu Yindi, TY-0001" />
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label" for="type">Type</label>
+                    <select class="form-select form-select-lg" id="type" name="type">
+                        <option value="">All</option>
+                        <option value="Book" selected="@(selectedType == "Book")">Books</option>
+                        <option value="Music" selected="@(selectedType == "Music")">Music</option>
+                        <option value="Toy" selected="@(selectedType == "Toy")">Toys</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary btn-lg w-100" type="submit">Search</button>
+                </div>
+            </div>
+            <div class="form-check mt-3">
+                <input class="form-check-input" type="checkbox" id="availableOnly" name="availableOnly"
+                       value="true" checked="@Model.AvailableOnly" />
+                <label class="form-check-label" for="availableOnly">Only show items on the shelf right now</label>
+            </div>
+        </form>
+
+        @if (Model.RecentSearches.Any())
+        {
+            <div class="mt-3 small">
+                <span class="text-muted me-2">You searched for</span>
+                @foreach (var term in Model.RecentSearches)
+                {
+                    <a class="badge-link" asp-action="Index" asp-route-query="@term">@term</a>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <aside class="info-card">
+            <h2 class="h6">Borrowing</h2>
+            <p class="small mb-2">@ViewData["LendingTerms"]</p>
+            <p class="small mb-0">
+                Items are collected and returned at the front desk. Bring your membership card.
+            </p>
+        </aside>
+    </div>
+</div>
+
+<hr class="my-4" />
+
+@if (!Model.Results.Any())
+{
+    <div class="empty-state">
+        <h2 class="h5">@(Model.HasSearched ? "Nothing matched that search" : "The whole collection is listed below")</h2>
+        <p class="mb-0 text-muted">
+            @(Model.HasSearched
+                ? "Try a shorter phrase, or clear the filters to see everything."
+                : "Start typing above to narrow it down.")
+        </p>
+    </div>
+}
+else
+{
+    <p class="text-muted">@Model.Results.Count item@(Model.Results.Count == 1 ? "" : "s") found</p>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+        @foreach (var item in Model.Results)
+        {
+            <div class="col">
+                <article class="h-100 result-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <span class="kind-tag">@item.ItemType</span>
+                        <partial name="_StatusBadge" model="item.Status" />
+                    </div>
+                    <h3 class="h6 mt-2 mb-1">
+                        <a asp-action="Details" asp-route-id="@item.Id">@item.Name</a>
+                    </h3>
+                    @if (!string.IsNullOrWhiteSpace(item.Summary))
+                    {
+                        <p class="small text-muted mb-2">@item.Summary</p>
+                    }
+                    <p class="code-line mb-0">
+                        @item.LibraryCode
+                        @if (item.Branch is not null)
+                        {
+                            <span class="ms-1">at @item.Branch.Name</span>
+                        }
+                    </p>
+                </article>
+            </div>
+        }
+    </div>
+}

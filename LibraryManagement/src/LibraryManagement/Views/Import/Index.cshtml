@@ -1,0 +1,69 @@
+@{
+    ViewData["Title"] = "Import";
+    var branches = ViewData["Branches"] as IReadOnlyList<Branch> ?? Array.Empty<Branch>();
+    var defaultBranchId = ViewData["DefaultBranchId"] as int?;
+    var providerName = ViewData["ProviderName"] as string ?? "the metadata provider";
+}
+
+<h1 class="h2 mb-1">Import stock</h1>
+<p class="text-muted">Add many items at once, from a spreadsheet or from an outside catalogue.</p>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="form-panel">
+            <h2 class="h5">From a CSV file</h2>
+            <p class="small text-muted">
+                Nothing is saved until you have seen what the file contains. Upload it, check the
+                preview, then confirm.
+            </p>
+
+            <form asp-action="Upload" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label" for="file">CSV file</label>
+                    <input class="form-control" type="file" id="file" name="file" accept=".csv" required />
+                    <div class="form-text">Up to 2 MB.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="branchId">Add the stock to</label>
+                    <select class="form-select" id="branchId" name="branchId" required>
+                        @foreach (var branch in branches)
+                        {
+                            <option value="@branch.Id" selected="@(defaultBranchId == branch.Id)">@branch.DisplayName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Upload and preview</button>
+                    <a class="btn btn-outline-secondary" asp-action="Template">Download a template</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="info-card mb-3">
+            <h2 class="h6">From @providerName</h2>
+            <p class="small mb-3">
+                Search an outside catalogue and pick records to bring in. Library codes are
+                generated for you.
+            </p>
+            <a class="btn btn-outline-primary" asp-action="Provider">Search the provider</a>
+        </div>
+
+        <aside class="info-card">
+            <h2 class="h6">What the file needs</h2>
+            <p class="small mb-2">
+                A header row with these columns:
+                <span class="code-line">LibraryCode, Kind, Name, Description, Creator, Genre, Year, Isbn, Format, MinimumAge, PieceCount</span>
+            </p>
+            <ul class="small mb-0 ps-3">
+                <li><strong>Kind</strong> is Book, Music or Toy.</li>
+                <li><strong>Creator</strong> is the author or artist.</li>
+                <li>Toys use <strong>Genre</strong> or <strong>Format</strong> for the toy type.</li>
+                <li>Codes already in the catalogue are skipped, not overwritten.</li>
+            </ul>
+        </aside>
+    </div>
+</div>

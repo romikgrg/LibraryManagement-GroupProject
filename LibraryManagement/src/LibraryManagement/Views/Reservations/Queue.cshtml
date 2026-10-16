@@ -1,0 +1,46 @@
+@model IReadOnlyList<Reservation>
+@{
+    var itemName = ViewData["ItemName"] as string ?? "this item";
+    ViewData["Title"] = $"Queue for {itemName}";
+}
+
+<h1 class="h2 mb-1">Queue for @itemName</h1>
+<p class="text-muted">In the order people joined. The person at the top gets it next.</p>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <p class="mb-0 text-muted">Nobody is waiting for this item.</p>
+    </div>
+}
+else
+{
+    <ol class="ranked-list">
+        @foreach (var hold in Model)
+        {
+            <li>
+                <span>
+                    @hold.Borrower?.FullName
+                    <span class="code-line">@hold.Borrower?.MembershipNumber</span>
+                    <span class="small text-muted d-block">
+                        Joined @hold.PlacedOn.ToString("d MMM yyyy") &middot; collecting from @hold.CollectionBranch?.Name
+                    </span>
+                </span>
+                <span class="count">
+                    @if (hold.Status == ReservationStatus.Ready)
+                    {
+                        <span class="status status-available">Ready</span>
+                    }
+                    else
+                    {
+                        <span class="status status-borrowed">Waiting</span>
+                    }
+                </span>
+            </li>
+        }
+    </ol>
+}
+
+<div class="mt-4">
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to holds</a>
+</div>

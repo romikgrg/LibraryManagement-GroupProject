@@ -1,0 +1,89 @@
+@model ImportPreview
+@{
+    ViewData["Title"] = "Check the import";
+}
+
+<h1 class="h2 mb-1">Check the import</h1>
+<p class="text-muted">
+    Read from <span class="code-line">@Model.FileName</span>. Nothing has been saved yet.
+</p>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.ReadyCount</span>
+            <span class="stat-label">will be added</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile @(Model.DuplicateCount > 0 ? "stat-alert" : "")">
+            <span class="stat-number">@Model.DuplicateCount</span>
+            <span class="stat-label">already in the catalogue</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile @(Model.InvalidCount > 0 ? "stat-alert" : "")">
+            <span class="stat-number">@Model.InvalidCount</span>
+            <span class="stat-label">have problems</span>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <form asp-action="Confirm" method="post">
+        <button type="submit" class="btn btn-primary" disabled="@(!Model.HasAnythingToImport)">
+            Import @Model.ReadyCount item@(Model.ReadyCount == 1 ? "" : "s")
+        </button>
+    </form>
+    <a class="btn btn-outline-secondary" asp-action="Index">Start again</a>
+</div>
+
+@if (!Model.HasAnythingToImport)
+{
+    <div class="alert alert-warning">
+        Nothing in this file can be imported. Fix the problems listed below and upload it again.
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-sm align-middle">
+        <thead>
+        <tr>
+            <th scope="col">Line</th>
+            <th scope="col">Verdict</th>
+            <th scope="col">Code</th>
+            <th scope="col">Kind</th>
+            <th scope="col">Name</th>
+            <th scope="col">Creator</th>
+            <th scope="col">Problem</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var row in Model.Rows)
+        {
+            <tr>
+                <td>@row.LineNumber</td>
+                <td>
+                    @switch (row.Verdict)
+                    {
+                        case ImportVerdict.Ready:
+                            <span class="status status-available">Ready</span>
+                            break;
+                        case ImportVerdict.Duplicate:
+                            <span class="status status-damaged">Duplicate</span>
+                            break;
+                        default:
+                            <span class="status status-destroyed">Problem</span>
+                            break;
+                    }
+                </td>
+                <td><span class="code-line">@row.LibraryCode</span></td>
+                <td>@row.Kind</td>
+                <td>@row.Name</td>
+                <td>@row.Creator</td>
+                <td class="small text-muted">@row.ProblemText</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

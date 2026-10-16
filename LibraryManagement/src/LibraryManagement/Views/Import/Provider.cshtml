@@ -1,0 +1,101 @@
+@model IReadOnlyList<MetadataResult>
+@{
+    var providerName = ViewData["ProviderName"] as string ?? "Provider";
+    ViewData["Title"] = providerName;
+    var branches = ViewData["Branches"] as IReadOnlyList<Branch> ?? Array.Empty<Branch>();
+    var defaultBranchId = ViewData["DefaultBranchId"] as int?;
+    var query = ViewData["Query"] as string;
+    var type = ViewData["Type"] as string ?? string.Empty;
+}
+
+<h1 class="h2 mb-1">@providerName</h1>
+<p class="text-muted">
+    Search an outside catalogue and tick the records you want. Library codes are generated when
+    they are imported.
+</p>
+
+<form method="get" asp-action="Provider" class="filter-bar row g-2 align-items-end mb-4">
+    <div class="col-12 col-md-6">
+        <label class="form-label" for="query">Search</label>
+        <input class="form-control" type="search" id="query" name="query" value="@query"
+               placeholder="Title, creator or ISBN" />
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="type">Type</label>
+        <select class="form-select" id="type" name="type">
+            <option value="">All types</option>
+            <option value="Book" selected="@(type == "Book")">Books</option>
+            <option value="Music" selected="@(type == "Music")">Music</option>
+            <option value="Toy" selected="@(type == "Toy")">Toys</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+        <button class="btn btn-outline-secondary w-100" type="submit">Search</button>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <h2 class="h5">Nothing matched that search</h2>
+        <p class="mb-0 text-muted">Try a shorter phrase, or clear the filters.</p>
+    </div>
+}
+else
+{
+    <form asp-action="ImportSelected" method="post">
+        <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+            <div>
+                <label class="form-label" for="branchId">Add the stock to</label>
+                <select class="form-select" id="branchId" name="branchId" required>
+                    @foreach (var branch in branches)
+                    {
+                        <option value="@branch.Id" selected="@(defaultBranchId == branch.Id)">@branch.DisplayName</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Import the ticked records</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th scope="col" style="width:3rem"><span class="visually-hidden">Select</span></th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Details</th>
+                    <th scope="col">Reference</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var record in Model)
+                {
+                    <tr>
+                        <td>
+                            <input class="form-check-input" type="checkbox"
+                                   name="identifiers" value="@record.Identifier"
+                                   id="pick-@record.Identifier" />
+                            <label class="visually-hidden" for="pick-@record.Identifier">Import @record.Title</label>
+                        </td>
+                        <td>
+                            @record.Title
+                            @if (!string.IsNullOrWhiteSpace(record.Description))
+                            {
+                                <div class="small text-muted">@record.Description</div>
+                            }
+                        </td>
+                        <td><span class="kind-tag">@record.Kind</span></td>
+                        <td class="small text-muted">@record.Summary</td>
+                        <td><span class="code-line">@record.Identifier</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </form>
+}
+
+<div class="mt-3">
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to import</a>
+</div>

@@ -1,0 +1,13 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<div class="row">
+    <div class="col-lg-7">
+        <h1 class="display-6">Access denied</h1>
+        <p class="lead">@Model.Message</p>
+        <p>If you need access to this area, ask the library manager to update your account role.</p>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Go to my dashboard</a>
+    </div>
+</div>

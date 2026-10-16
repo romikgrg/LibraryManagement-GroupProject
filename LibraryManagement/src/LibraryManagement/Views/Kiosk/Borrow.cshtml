@@ -1,0 +1,50 @@
+@model KioskViewModel
+@{
+    ViewData["Title"] = "Borrow";
+    ViewBag.KioskBranch = Model.Branch;
+}
+
+<h1 class="kiosk-title">Borrow an item</h1>
+
+@if (!string.IsNullOrWhiteSpace(Model.Success))
+{
+    <div class="kiosk-banner kiosk-banner-good">
+        <span class="kiosk-banner-icon" aria-hidden="true">&check;</span>
+        <span>@Model.Success</span>
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Problem))
+{
+    <div class="kiosk-banner kiosk-banner-bad">
+        <span class="kiosk-banner-icon" aria-hidden="true">!</span>
+        <span>@Model.Problem</span>
+    </div>
+}
+
+<form asp-action="Borrow" method="post" class="kiosk-form">
+    @if (!Model.HasMember)
+    {
+        @* Step one: who are you. The second box is not shown yet, because a patron
+           faced with two empty fields fills in the wrong one. *@
+        <label class="kiosk-label" for="membershipNumber">Scan your library card</label>
+        <input class="kiosk-input" id="membershipNumber" name="membershipNumber"
+               value="@Model.MembershipNumber" autofocus autocomplete="off"
+               placeholder="M-1001" />
+        <button type="submit" class="kiosk-button">Continue</button>
+    }
+    else
+    {
+        <p class="kiosk-greeting">Hello, @Model.Member!.FirstName.</p>
+
+        <input type="hidden" name="membershipNumber" value="@Model.Member.MembershipNumber" />
+
+        <label class="kiosk-label" for="libraryCode">Scan the item</label>
+        <input class="kiosk-input" id="libraryCode" name="libraryCode"
+               autofocus autocomplete="off" placeholder="BK-0001" />
+        <button type="submit" class="kiosk-button">Borrow it</button>
+
+        <p class="kiosk-hint">Scan another item to keep going, or press Finish when you are done.</p>
+        <a class="kiosk-secondary" asp-action="Index">Finish</a>
+    }
+</form>

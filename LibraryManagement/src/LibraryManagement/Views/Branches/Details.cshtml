@@ -1,0 +1,95 @@
+@model LibraryManagement.Services.BranchInventory
+@{
+    var branch = Model.Branch!;
+    ViewData["Title"] = branch.Name;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+        <span class="kind-tag">@branch.Code</span>
+        <h1 class="h2 mt-2 mb-1">@branch.Name</h1>
+        <p class="text-muted mb-0">@(branch.Address ?? "No address recorded")</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@branch.Id">Edit</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.HeldHere</span>
+            <span class="stat-label">items held</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.Available</span>
+            <span class="stat-label">on the shelf</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.AvailabilityRate.ToString("0.0")%</span>
+            <span class="stat-label">availability</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile @(Model.OutOfAction > 0 ? "stat-alert" : "")">
+            <span class="stat-number">@Model.OutOfAction</span>
+            <span class="stat-label">damaged or destroyed</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="info-card">
+            <h2 class="h6">Contact</h2>
+            <dl class="row detail-list mb-0">
+                <dt class="col-sm-5">Phone</dt>
+                <dd class="col-sm-7">@(branch.Phone ?? "Not recorded")</dd>
+                <dt class="col-sm-5">Opening hours</dt>
+                <dd class="col-sm-7">@(branch.OpeningHours ?? "Not recorded")</dd>
+                <dt class="col-sm-5">Status</dt>
+                <dd class="col-sm-7">
+                    @if (branch.IsOpen)
+                    {
+                        <span class="status status-available">Open to the public</span>
+                    }
+                    else
+                    {
+                        <span class="status status-destroyed">Closed</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="info-card">
+            <h2 class="h6">Stock movement</h2>
+            <dl class="row detail-list mb-0">
+                <dt class="col-sm-7">Out on loan</dt>
+                <dd class="col-sm-5">@Model.OnLoan</dd>
+                <dt class="col-sm-7">In transit</dt>
+                <dd class="col-sm-5">@Model.InTransit</dd>
+                <dt class="col-sm-7">On the holds shelf</dt>
+                <dd class="col-sm-5">@Model.AwaitingCollection</dd>
+                <dt class="col-sm-7">Visiting from another branch</dt>
+                <dd class="col-sm-5">@Model.VisitingStock</dd>
+                <dt class="col-sm-7">Owned but sitting elsewhere</dt>
+                <dd class="col-sm-5">@Model.OwnedButAway</dd>
+                <dt class="col-sm-7">Holds waiting here</dt>
+                <dd class="col-sm-5">@Model.OpenReservations</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a class="btn btn-outline-primary" asp-controller="Items" asp-action="Index" asp-route-branchId="@branch.Id">
+        See everything held at @branch.Name
+    </a>
+</div>

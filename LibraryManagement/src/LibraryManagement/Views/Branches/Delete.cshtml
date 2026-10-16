@@ -1,0 +1,30 @@
+@model LibraryManagement.Services.BranchInventory
+@{
+    var branch = Model.Branch!;
+    ViewData["Title"] = $"Delete {branch.Name}";
+}
+
+<h1 class="h2 mb-3">Delete this branch?</h1>
+
+<div class="alert alert-warning">
+    A branch that holds stock, has members registered to it, or appears in the borrowing history
+    cannot be deleted. Close it instead, by clearing the open tick on the edit screen.
+</div>
+
+<div class="info-card mb-4">
+    <dl class="row detail-list mb-0">
+        <dt class="col-sm-4">Branch</dt>
+        <dd class="col-sm-8">@branch.DisplayName</dd>
+        <dt class="col-sm-4">Items held</dt>
+        <dd class="col-sm-8">@Model.HeldHere</dd>
+        <dt class="col-sm-4">Owned but elsewhere</dt>
+        <dd class="col-sm-8">@Model.OwnedButAway</dd>
+        <dt class="col-sm-4">Holds waiting</dt>
+        <dd class="col-sm-8">@Model.OpenReservations</dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" asp-route-id="@branch.Id" method="post" class="d-flex gap-2">
+    <button type="submit" class="btn btn-danger">Delete permanently</button>
+    <a class="btn btn-outline-secondary" asp-action="Index">Keep it</a>
+</form>

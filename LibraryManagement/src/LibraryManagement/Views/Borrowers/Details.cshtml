@@ -1,0 +1,88 @@
+@model Borrower
+@{
+    ViewData["Title"] = Model.FullName;
+    var owing = Model.Loans.Where(l => !l.FinePaid).Sum(l => l.FineAmount);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">@Model.FullName</h1>
+        <p class="text-muted mb-0">
+            <span class="code-line">@Model.MembershipNumber</span>
+            &middot; member since @Model.JoinedOn.ToString("MMMM yyyy")
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="info-card">
+            <dl class="row detail-list mb-0">
+                <dt class="col-sm-5">Email</dt>
+                <dd class="col-sm-7">@(Model.Email ?? "Not recorded")</dd>
+                <dt class="col-sm-5">Phone</dt>
+                <dd class="col-sm-7">@(Model.Phone ?? "Not recorded")</dd>
+                <dt class="col-sm-5">Address</dt>
+                <dd class="col-sm-7">@(Model.Address ?? "Not recorded")</dd>
+                <dt class="col-sm-5">Membership</dt>
+                <dd class="col-sm-7">@(Model.IsActive ? "Active" : "Suspended")</dd>
+                <dt class="col-sm-5">Items out now</dt>
+                <dd class="col-sm-7">@Model.Loans.Count(l => l.ReturnedOn == null)</dd>
+                <dt class="col-sm-5">Fines owing</dt>
+                <dd class="col-sm-7">@owing.ToString("C")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <h2 class="h5">Borrowing history</h2>
+        @if (!Model.Loans.Any())
+        {
+            <div class="empty-state">
+                <p class="mb-0 text-muted">This member has not borrowed anything yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Borrowed</th>
+                        <th scope="col">Due</th>
+                        <th scope="col">Returned</th>
+                        <th scope="col" class="text-end">Fine</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var loan in Model.Loans)
+                    {
+                        <tr>
+                            <td>@(loan.Item?.Name ?? "Unknown") <span class="code-line">@loan.Item?.LibraryCode</span></td>
+                            <td>@loan.BorrowedOn.ToString("d MMM yyyy")</td>
+                            <td>@loan.DueOn.ToString("d MMM yyyy")</td>
+                            <td>@(loan.ReturnedOn?.ToString("d MMM yyyy") ?? "Still out")</td>
+                            <td class="text-end">
+                                @if (loan.FineAmount > 0)
+                                {
+                                    <span>@loan.FineAmount.ToString("C")</span>
+                                    <span class="small text-muted">@(loan.FinePaid ? "paid" : "unpaid")</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

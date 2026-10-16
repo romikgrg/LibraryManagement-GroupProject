@@ -1,0 +1,66 @@
+@model KioskViewModel
+@{
+    ViewData["Title"] = "Look up an item";
+    ViewBag.KioskBranch = Model.Branch;
+    var item = Model.ScannedItem;
+}
+
+<h1 class="kiosk-title">Look up an item</h1>
+
+@if (!string.IsNullOrWhiteSpace(Model.Problem))
+{
+    <div class="kiosk-banner kiosk-banner-bad">
+        <span class="kiosk-banner-icon" aria-hidden="true">!</span>
+        <span>@Model.Problem</span>
+    </div>
+}
+
+@if (item is not null)
+{
+    <div class="kiosk-result">
+        <span class="kiosk-result-type">@item.ItemType</span>
+        <h2 class="kiosk-result-title">@item.Name</h2>
+        @if (!string.IsNullOrWhiteSpace(item.Summary))
+        {
+            <p class="kiosk-result-sub">@item.Summary</p>
+        }
+
+        @if (item.Status == ItemStatus.Available)
+        {
+            <p class="kiosk-result-good">
+                On the shelf at @(item.Branch?.Name ?? "this branch") right now.
+            </p>
+        }
+        else if (item.Status == ItemStatus.Borrowed)
+        {
+            <p class="kiosk-result-wait">
+                Out on loan at the moment. Ask at the desk to be put in the queue for it.
+            </p>
+        }
+        else if (item.Status == ItemStatus.InTransit)
+        {
+            <p class="kiosk-result-wait">
+                On its way between branches. Ask at the desk when it is expected.
+            </p>
+        }
+        else if (item.Status == ItemStatus.AwaitingCollection)
+        {
+            <p class="kiosk-result-wait">
+                Being held for another member at the moment.
+            </p>
+        }
+        else
+        {
+            <p class="kiosk-result-wait">
+                Not available at the moment. Please ask at the desk.
+            </p>
+        }
+    </div>
+}
+
+<form asp-action="Find" method="get" class="kiosk-form">
+    <label class="kiosk-label" for="libraryCode">Scan or type the code</label>
+    <input class="kiosk-input" id="libraryCode" name="libraryCode"
+           value="@Model.LibraryCode" autofocus autocomplete="off" placeholder="BK-0001" />
+    <button type="submit" class="kiosk-button">Look it up</button>
+</form>

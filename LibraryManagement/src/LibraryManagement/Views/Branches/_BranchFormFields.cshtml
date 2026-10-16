@@ -1,0 +1,39 @@
+@model Branch
+<div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <label asp-for="Code" class="form-label"></label>
+        <input asp-for="Code" class="form-control" placeholder="DRW" />
+        <div class="form-text">Two to six letters. Used in URLs and on the kiosk.</div>
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+    <div class="col-md-9">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Address" class="form-label"></label>
+        <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="OpeningHours" class="form-label"></label>
+        <input asp-for="OpeningHours" class="form-control" placeholder="Mon-Fri 9am-5pm" />
+        <div class="form-text">Shown on the public portal and the API status endpoint.</div>
+        <span asp-validation-for="OpeningHours" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <div class="form-check">
+            <input asp-for="IsOpen" class="form-check-input" />
+            <label asp-for="IsOpen" class="form-check-label"></label>
+            <div class="form-text">A closed branch stays in the catalogue but takes no loans, holds or transfers.</div>
+        </div>
+    </div>
+</div>

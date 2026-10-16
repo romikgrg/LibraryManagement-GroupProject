@@ -1,0 +1,122 @@
+@model IReadOnlyList<Notification>
+@using LibraryManagement.Services.Notifications
+@{
+    ViewData["Title"] = "Notices";
+    var summary = ViewData["Summary"] as NotificationSummary ?? new NotificationSummary();
+    var selectedKind = ViewData["Kind"] as NotificationKind?;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Notices</h1>
+        <p class="text-muted mb-0">
+            Every message the system has written to a member. Nothing actually leaves the
+            building: each one is written to the application log and recorded here.
+        </p>
+    </div>
+    <form asp-action="RunSweep" method="post">
+        <button type="submit" class="btn btn-primary">Run the due-date sweep</button>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@summary.Total</span>
+            <span class="stat-label">messages</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@summary.Sent</span>
+            <span class="stat-label">delivered</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile @(summary.Failed > 0 ? "stat-alert" : "")">
+            <span class="stat-number">@summary.Failed</span>
+            <span class="stat-label">failed or skipped</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@summary.SentToday</span>
+            <span class="stat-label">today</span>
+        </div>
+    </div>
+</div>
+
+<div class="filter-bar mb-4">
+    <span class="small text-muted me-2">Show</span>
+    <a class="badge-link @(selectedKind is null ? "badge-link-active" : "")" asp-action="Index">Everything</a>
+    @foreach (var kind in Enum.GetValues<NotificationKind>())
+    {
+        <a class="badge-link @(selectedKind == kind ? "badge-link-active" : "")"
+           asp-action="Index" asp-route-kind="@kind">@kind</a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <h2 class="h5">No messages yet</h2>
+        <p class="mb-0 text-muted">
+            Borrow or return something, or run the due-date sweep, and the messages appear here.
+        </p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th scope="col">When</th>
+                <th scope="col">Kind</th>
+                <th scope="col">Member</th>
+                <th scope="col">Channel</th>
+                <th scope="col">To</th>
+                <th scope="col">Message</th>
+                <th scope="col">Outcome</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var notice in Model)
+            {
+                <tr>
+                    <td class="text-nowrap">@notice.CreatedOn.ToString("d MMM, h:mm tt")</td>
+                    <td><span class="kind-tag">@notice.Kind</span></td>
+                    <td>@notice.Borrower?.FullName</td>
+                    <td>@notice.Channel</td>
+                    <td class="small text-muted">@notice.Recipient</td>
+                    <td>
+                        <div class="fw-semibold small">@notice.Subject</div>
+                        <div class="small text-muted">@notice.Body</div>
+                    </td>
+                    <td>
+                        @switch (notice.Status)
+                        {
+                            case NotificationStatus.Sent:
+                                <span class="status status-available">Sent</span>
+                                break;
+                            case NotificationStatus.Failed:
+                                <span class="status status-destroyed">Failed</span>
+                                break;
+                            case NotificationStatus.Skipped:
+                                <span class="status status-damaged">Skipped</span>
+                                break;
+                            default:
+                                <span class="status status-borrowed">Queued</span>
+                                break;
+                        }
+                        @if (!string.IsNullOrWhiteSpace(notice.FailureReason))
+                        {
+                            <div class="small text-muted">@notice.FailureReason</div>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

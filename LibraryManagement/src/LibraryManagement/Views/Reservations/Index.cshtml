@@ -1,0 +1,166 @@
+@model ReservationDeskViewModel
+@{
+    ViewData["Title"] = "Holds";
+    var today = DateTime.Today;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Holds</h1>
+        <p class="text-muted mb-0">
+            @(Model.ShowingAllBranches
+                ? "Everyone waiting for something, across the network."
+                : $"Everyone waiting for something at {Model.CurrentBranch?.Name}.")
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" asp-action="Place">Place a hold</a>
+        @if (Model.CurrentBranch is not null)
+        {
+            <a class="btn btn-outline-secondary"
+               asp-action="Index" asp-route-allBranches="@(!Model.ShowingAllBranches)">
+                @(Model.ShowingAllBranches ? "Just my branch" : "All branches")
+            </a>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.ReadyForCollection.Count</span>
+            <span class="stat-label">on the holds shelf</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.Waiting.Count</span>
+            <span class="stat-label">still waiting</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile @(Model.Lapsed.Count > 0 ? "stat-alert" : "")">
+            <span class="stat-number">@Model.Lapsed.Count</span>
+            <span class="stat-label">not collected in time</span>
+        </div>
+    </div>
+</div>
+
+@if (Model.Lapsed.Any())
+{
+    <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>
+            @Model.Lapsed.Count hold@(Model.Lapsed.Count == 1 ? " has" : "s have") passed their collection date.
+            Clearing them offers each item to the next member in the queue.
+        </span>
+        <form asp-action="ExpireLapsed" method="post">
+            <button type="submit" class="btn btn-sm btn-primary">Clear uncollected holds</button>
+        </form>
+    </div>
+}
+
+@if (Model.ReadyForCollection.Any())
+{
+    <h2 class="h5">Ready for collection</h2>
+    <div class="table-responsive mb-4">
+        <table class="table table-sm align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Member</th>
+                <th scope="col">Collect from</th>
+                <th scope="col">Ready since</th>
+                <th scope="col">Collect by</th>
+                <th scope="col" class="text-end">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var hold in Model.ReadyForCollection)
+            {
+                <tr>
+                    <td>
+                        @hold.Item?.Name
+                        <span class="code-line">@hold.Item?.LibraryCode</span>
+                    </td>
+                    <td>
+                        <a asp-controller="Borrowers" asp-action="Details" asp-route-id="@hold.BorrowerId">
+                            @hold.Borrower?.FullName
+                        </a>
+                    </td>
+                    <td>@hold.CollectionBranch?.Name</td>
+                    <td>@hold.ReadyOn?.ToString("d MMM")</td>
+                    <td>
+                        @if (hold.HasLapsed(today))
+                        {
+                            <span class="status status-damaged">@hold.ExpiresOn?.ToString("d MMM") — overdue</span>
+                        }
+                        else
+                        {
+                            @hold.ExpiresOn?.ToString("d MMM yyyy")
+                        }
+                    </td>
+                    <td class="text-end">
+                        <form asp-action="Cancel" asp-route-id="@hold.Id" method="post" class="d-inline">
+                            <input type="hidden" name="returnUrl" value="@Url.Action("Index")" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Cancel hold</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+<h2 class="h5">Waiting in the queue</h2>
+@if (!Model.Waiting.Any())
+{
+    <div class="empty-state">
+        <p class="mb-0 text-muted">Nobody is waiting for anything right now.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Item status</th>
+                <th scope="col">Member</th>
+                <th scope="col">Collect from</th>
+                <th scope="col">Waiting since</th>
+                <th scope="col" class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var hold in Model.Waiting)
+            {
+                <tr>
+                    <td>
+                        @hold.Item?.Name
+                        <span class="code-line">@hold.Item?.LibraryCode</span>
+                    </td>
+                    <td>
+                        @if (hold.Item is not null)
+                        {
+                            <partial name="_StatusBadge" model="hold.Item.Status" />
+                        }
+                    </td>
+                    <td>@hold.Borrower?.FullName</td>
+                    <td>@hold.CollectionBranch?.Name</td>
+                    <td>@hold.PlacedOn.ToString("d MMM yyyy")</td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-secondary"
+                           asp-action="Queue" asp-route-itemId="@hold.ItemId">See the queue</a>
+                        <form asp-action="Cancel" asp-route-id="@hold.Id" method="post" class="d-inline">
+                            <input type="hidden" name="returnUrl" value="@Url.Action("Index")" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,175 @@
+@model TransferDeskViewModel
+@{
+    ViewData["Title"] = "Transfers";
+    var here = Model.CurrentBranch;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Transfers</h1>
+        <p class="text-muted mb-0">
+            @(here is null
+                ? "Stock moving between every branch in the network."
+                : $"Stock moving in and out of {here.Name}.")
+        </p>
+    </div>
+    <a class="btn btn-primary" asp-action="Request">Request an item</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.Incoming.Count</span>
+            <span class="stat-label">coming in</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <span class="stat-number">@Model.Outgoing.Count</span>
+            <span class="stat-label">going out</span>
+        </div>
+    </div>
+</div>
+
+@if (!Model.HasAnythingOpen)
+{
+    <div class="empty-state">
+        <h2 class="h5">Nothing is moving right now</h2>
+        <p class="mb-0 text-muted">Request an item from another branch to start a transfer.</p>
+    </div>
+}
+
+@if (Model.Outgoing.Any())
+{
+    <h2 class="h5">Going out — pick these off the shelf</h2>
+    <div class="table-responsive mb-4">
+        <table class="table table-sm align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Item</th>
+                <th scope="col">To</th>
+                <th scope="col">Requested</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var transfer in Model.Outgoing)
+            {
+                <tr>
+                    <td>
+                        @transfer.Item?.Name
+                        <span class="code-line">@transfer.Item?.LibraryCode</span>
+                    </td>
+                    <td>@transfer.ToBranch?.Name</td>
+                    <td>@transfer.RequestedOn.ToString("d MMM")</td>
+                    <td><span class="status @StatusCss(transfer.Status)">@transfer.Status</span></td>
+                    <td class="text-end text-nowrap">
+                        @if (transfer.Status == TransferStatus.Requested)
+                        {
+                            <form asp-action="Dispatch" asp-route-id="@transfer.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-primary">Dispatch</button>
+                            </form>
+                            <form asp-action="Cancel" asp-route-id="@transfer.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="small text-muted">Waiting to arrive</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (Model.Incoming.Any())
+{
+    <h2 class="h5">Coming in — check these off when they arrive</h2>
+    <div class="table-responsive mb-4">
+        <table class="table table-sm align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Item</th>
+                <th scope="col">From</th>
+                <th scope="col">Requested</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var transfer in Model.Incoming)
+            {
+                <tr>
+                    <td>
+                        @transfer.Item?.Name
+                        <span class="code-line">@transfer.Item?.LibraryCode</span>
+                        @if (transfer.ReservationId.HasValue)
+                        {
+                            <span class="status status-borrowed ms-1">For a hold</span>
+                        }
+                    </td>
+                    <td>@transfer.FromBranch?.Name</td>
+                    <td>@transfer.RequestedOn.ToString("d MMM")</td>
+                    <td><span class="status @StatusCss(transfer.Status)">@transfer.Status</span></td>
+                    <td class="text-end text-nowrap">
+                        @if (transfer.Status == TransferStatus.InTransit)
+                        {
+                            <form asp-action="Receive" asp-route-id="@transfer.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-primary">Check it in</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="small text-muted">Not sent yet</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (Model.Recent.Any())
+{
+    <h2 class="h5">Recent movement</h2>
+    <ul class="activity-list">
+        @foreach (var transfer in Model.Recent)
+        {
+            <li>
+                @if (transfer.Status == TransferStatus.Received)
+                {
+                    <span>
+                        @transfer.ReceivedOn?.ToString("d MMM"): @transfer.Item?.Name arrived at
+                        @transfer.ToBranch?.Name from @transfer.FromBranch?.Name
+                        (@transfer.DaysInProgress(DateTime.Today) day@(transfer.DaysInProgress(DateTime.Today) == 1 ? "" : "s"))
+                    </span>
+                }
+                else
+                {
+                    <span>
+                        @transfer.RequestedOn.ToString("d MMM"): @transfer.Item?.Name,
+                        @transfer.FromBranch?.Name to @transfer.ToBranch?.Name
+                    </span>
+                    <span class="status @StatusCss(transfer.Status) ms-2">@transfer.Status</span>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@functions {
+    // Reuses the item status colours so a transfer in transit reads the same way
+    // an item in transit does elsewhere in the application.
+    private static string StatusCss(TransferStatus status) => status switch
+    {
+        TransferStatus.Requested => "status-damaged",
+        TransferStatus.InTransit => "status-borrowed",
+        TransferStatus.Received => "status-available",
+        _ => "status-destroyed"
+    };
+}

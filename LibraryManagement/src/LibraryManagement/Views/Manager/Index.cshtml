@@ -1,0 +1,377 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+@functions {
+    // Turns a count into a percentage of the biggest bar in the same chart, so the
+    // bars stay readable whether the library has ten loans or ten thousand.
+    private static int Scale(IReadOnlyList<CountByLabel> series, int value)
+    {
+        var max = series.Count == 0 ? 0 : series.Max(s => s.Count);
+        return max == 0 ? 0 : (int)Math.Round(value * 100.0 / max);
+    }
+}
+
+@{
+    var branches = ViewData["Branches"] as IReadOnlyList<Branch> ?? Array.Empty<Branch>();
+    var scopeId = ViewData["BranchId"] as int?;
+    var scopeName = ViewData["BranchName"] as string;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Reports</h1>
+        <p class="text-muted mb-0">
+            @(scopeName ?? "All branches") &middot;
+            generated @Model.GeneratedOn.ToString("dddd d MMMM yyyy, h:mm tt")
+        </p>
+    </div>
+    <form method="get" asp-action="Index" class="d-flex align-items-end gap-2">
+        <div>
+            <label class="form-label" for="branchId">Show figures for</label>
+            <select class="form-select" id="branchId" name="branchId">
+                <option value="">All branches</option>
+                @foreach (var branch in branches)
+                {
+                    <option value="@branch.Id" selected="@(scopeId == branch.Id)">@branch.DisplayName</option>
+                }
+            </select>
+        </div>
+        <button class="btn btn-outline-secondary" type="submit">Apply</button>
+    </form>
+</div>
+
+<section class="mb-5">
+    <h2 class="h4 section-heading">Borrowing</h2>
+
+    <div class="export-row">
+        <span class="label">Export</span>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="Borrowing" asp-route-format="csv" asp-route-branchId="@scopeId">CSV</a>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="Borrowing" asp-route-format="pdf" asp-route-branchId="@scopeId">PDF</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Borrowing.TotalLoans</span>
+                <span class="stat-label">loans all time</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Borrowing.LoansThisMonth</span>
+                <span class="stat-label">this month</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Borrowing.CurrentlyOnLoan</span>
+                <span class="stat-label">out now</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile @(Model.Borrowing.OverdueNow > 0 ? "stat-alert" : "")">
+                <span class="stat-number">@Model.Borrowing.OverdueNow</span>
+                <span class="stat-label">overdue</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <h3 class="h6">Loans over the last six months</h3>
+            <div class="bar-chart">
+                @foreach (var month in Model.Borrowing.LoansByMonth)
+                {
+                    <div class="bar-row">
+                        <span class="bar-label">@month.Label</span>
+                        <span class="bar-track">
+                            <span class="bar-fill" style="width:@Scale(Model.Borrowing.LoansByMonth, month.Count)%"></span>
+                        </span>
+                        <span class="bar-value">@month.Count</span>
+                    </div>
+                }
+            </div>
+
+            <h3 class="h6 mt-4">By item type</h3>
+            <div class="bar-chart">
+                @foreach (var type in Model.Borrowing.LoansByItemType)
+                {
+                    <div class="bar-row">
+                        <span class="bar-label">@type.Label</span>
+                        <span class="bar-track">
+                            <span class="bar-fill" style="width:@Scale(Model.Borrowing.LoansByItemType, type.Count)%"></span>
+                        </span>
+                        <span class="bar-value">@type.Count</span>
+                    </div>
+                }
+            </div>
+
+            <p class="text-muted small mt-3">
+                Items are kept for an average of @Model.Borrowing.AverageDaysKept days.
+            </p>
+        </div>
+
+        <div class="col-lg-6">
+            <h3 class="h6">Most borrowed items</h3>
+            @if (!Model.Borrowing.MostBorrowedItems.Any())
+            {
+                <p class="text-muted small">No loans recorded yet.</p>
+            }
+            else
+            {
+                <ol class="ranked-list">
+                    @foreach (var item in Model.Borrowing.MostBorrowedItems)
+                    {
+                        <li><span>@item.Label</span><span class="count">@item.Count</span></li>
+                    }
+                </ol>
+            }
+
+            <h3 class="h6 mt-4">Busiest members</h3>
+            @if (!Model.Borrowing.BusiestBorrowers.Any())
+            {
+                <p class="text-muted small">No loans recorded yet.</p>
+            }
+            else
+            {
+                <ol class="ranked-list">
+                    @foreach (var borrower in Model.Borrowing.BusiestBorrowers)
+                    {
+                        <li><span>@borrower.Label</span><span class="count">@borrower.Count</span></li>
+                    }
+                </ol>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="mb-5">
+    <h2 class="h4 section-heading">Item status</h2>
+
+    <div class="export-row">
+        <span class="label">Export</span>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="InventoryHealth" asp-route-format="csv" asp-route-branchId="@scopeId">CSV</a>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="InventoryHealth" asp-route-format="pdf" asp-route-branchId="@scopeId">PDF</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <p class="text-muted">@Model.Items.TotalItems items in the collection.</p>
+            <div class="bar-chart">
+                @foreach (var status in Model.Items.ByStatus)
+                {
+                    <div class="bar-row">
+                        <span class="bar-label">@status.Label</span>
+                        <span class="bar-track">
+                            <span class="bar-fill" style="width:@Scale(Model.Items.ByStatus, status.Count)%"></span>
+                        </span>
+                        <span class="bar-value">@status.Count</span>
+                    </div>
+                }
+            </div>
+
+            <h3 class="h6 mt-4">By type</h3>
+            <div class="bar-chart">
+                @foreach (var type in Model.Items.ByType)
+                {
+                    <div class="bar-row">
+                        <span class="bar-label">@type.Label</span>
+                        <span class="bar-track">
+                            <span class="bar-fill" style="width:@Scale(Model.Items.ByType, type.Count)%"></span>
+                        </span>
+                        <span class="bar-value">@type.Count</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <h3 class="h6">Damaged or destroyed</h3>
+            @if (!Model.Items.OutOfAction.Any())
+            {
+                <p class="text-muted small">Nothing in the collection needs attention.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                        <tr>
+                            <th scope="col">Item</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in Model.Items.OutOfAction)
+                        {
+                            <tr>
+                                <td>@item.Name <span class="code-line">@item.LibraryCode</span></td>
+                                <td>@item.ItemType</td>
+                                <td><partial name="_StatusBadge" model="item.Status" /></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="mb-5">
+    <h2 class="h4 section-heading">Fines</h2>
+
+    <div class="export-row">
+        <span class="label">Export</span>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="FineRevenue" asp-route-format="csv" asp-route-branchId="@scopeId">CSV</a>
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-action="Export" asp-route-report="FineRevenue" asp-route-format="pdf" asp-route-branchId="@scopeId">PDF</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Fines.TotalCharged.ToString("C")</span>
+                <span class="stat-label">charged</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Fines.TotalPaid.ToString("C")</span>
+                <span class="stat-label">collected</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile @(Model.Fines.Outstanding > 0 ? "stat-alert" : "")">
+                <span class="stat-number">@Model.Fines.Outstanding.ToString("C")</span>
+                <span class="stat-label">outstanding</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Fines.LateReturns</span>
+                <span class="stat-label">late returns</span>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-muted">
+        Average fine @Model.Fines.AverageFine.ToString("C"), largest @Model.Fines.LargestFine.ToString("C").
+    </p>
+
+    <h3 class="h6">Unpaid</h3>
+    @if (!Model.Fines.UnpaidFines.Any())
+    {
+        <p class="text-muted small">Every fine has been paid.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                <tr>
+                    <th scope="col">Member</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Returned</th>
+                    <th scope="col" class="text-end">Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var loan in Model.Fines.UnpaidFines)
+                {
+                    <tr>
+                        <td>@loan.Borrower?.FullName</td>
+                        <td>@loan.Item?.Name</td>
+                        <td>@loan.ReturnedOn?.ToString("d MMM yyyy")</td>
+                        <td class="text-end">@loan.FineAmount.ToString("C")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section>
+    <h2 class="h4 section-heading">Across the network</h2>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Network.InTransit</span>
+                <span class="stat-label">items on the road</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Network.OpenTransfers</span>
+                <span class="stat-label">transfers open</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile">
+                <span class="stat-number">@Model.Network.ReadyHolds</span>
+                <span class="stat-label">holds on the shelf</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile @(Model.Network.LapsedHolds > 0 ? "stat-alert" : "")">
+                <span class="stat-number">@Model.Network.LapsedHolds</span>
+                <span class="stat-label">holds not collected</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <h3 class="h6">Loans by branch</h3>
+            @if (!Model.Network.LoansByBranch.Any())
+            {
+                <p class="text-muted small">No loans recorded yet.</p>
+            }
+            else
+            {
+                <div class="bar-chart">
+                    @foreach (var branch in Model.Network.LoansByBranch)
+                    {
+                        <div class="bar-row">
+                            <span class="bar-label">@branch.Label</span>
+                            <span class="bar-track">
+                                <span class="bar-fill" style="width:@Scale(Model.Network.LoansByBranch, branch.Count)%"></span>
+                            </span>
+                            <span class="bar-value">@branch.Count</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-6">
+            <h3 class="h6">Transfers and holds</h3>
+            <div class="split-stat">
+                <span>Transfers completed</span>
+                <span class="value">@Model.Network.CompletedTransfers</span>
+            </div>
+            <div class="split-stat">
+                <span>Average days in transit</span>
+                <span class="value">@Model.Network.AverageTransferDays</span>
+            </div>
+            <div class="split-stat">
+                <span>Members waiting in a queue</span>
+                <span class="value">@Model.Network.WaitingHolds</span>
+            </div>
+            <div class="split-stat">
+                <span>Holds collected</span>
+                <span class="value">@Model.Network.CollectedHolds</span>
+            </div>
+        </div>
+    </div>
+</section>

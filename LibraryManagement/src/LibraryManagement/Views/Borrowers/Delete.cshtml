@@ -1,0 +1,29 @@
+@model Borrower
+@{
+    ViewData["Title"] = $"Delete {Model.FullName}";
+}
+
+<h1 class="h2 mb-3">Delete this member?</h1>
+
+<div class="alert alert-warning">
+    Members with borrowing history cannot be deleted, because the manager's reports depend on it.
+    Suspend them instead by clearing the active tick on the edit screen.
+</div>
+
+<div class="info-card mb-4">
+    <dl class="row detail-list mb-0">
+        <dt class="col-sm-3">Name</dt>
+        <dd class="col-sm-9">@Model.FullName</dd>
+        <dt class="col-sm-3">Membership</dt>
+        <dd class="col-sm-9"><span class="code-line">@Model.MembershipNumber</span></dd>
+        <dt class="col-sm-3">Loans recorded</dt>
+        <dd class="col-sm-9">@Model.Loans.Count</dd>
+        <dt class="col-sm-3">Items out now</dt>
+        <dd class="col-sm-9">@Model.Loans.Count(l => l.ReturnedOn == null)</dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+    <button type="submit" class="btn btn-danger">Delete permanently</button>
+    <a class="btn btn-outline-secondary" asp-action="Index">Keep them</a>
+</form>

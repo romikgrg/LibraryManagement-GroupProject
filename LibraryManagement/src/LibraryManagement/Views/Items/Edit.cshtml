@@ -1,0 +1,21 @@
+@model ItemFormViewModel
+@{
+    ViewData["Title"] = $"Edit {Model.Name}";
+}
+
+<h1 class="h2 mb-3">Edit @Model.Name</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="form-panel">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_ItemFormFields" model="Model" />
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/item-form.js" asp-append-version="true"></script>
+}

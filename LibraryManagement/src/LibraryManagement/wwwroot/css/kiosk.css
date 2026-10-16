@@ -1,0 +1,462 @@
+/* ---------------------------------------------------------------------------
+   Self-service kiosk
+   ---------------------------------------------------------------------------
+   Loaded only by _KioskLayout, on top of site.css.
+
+   This is a terminal bolted to a plinth in the foyer, not a web page. The person
+   using it is standing about 600mm away, often in strong daylight through the
+   glass front, sometimes with a child on one hip, and they want to be gone in
+   half a minute. Every decision below follows from that:
+
+     - Nothing smaller than 18px, and the things that matter are far larger.
+     - Touch targets of at least 64px, 88px for the primary action.
+     - Solid blocks of colour rather than subtle tints, so the screen survives
+       ambient light.
+     - No hover states carry meaning: there is no cursor. Feedback lives on
+       :active and :focus-visible.
+
+   The palette is the site's own teal and ink, pushed to higher contrast. It is
+   the same library, speaking up.
+   --------------------------------------------------------------------------- */
+
+:root {
+    --k-ink: #0d2024;
+    --k-teal: #1f6f6b;
+    --k-teal-deep: #10403e;
+    --k-paper: #ffffff;
+    --k-sand: #f2ede1;
+    --k-line: #d6cdba;
+    --k-good: #1a5c38;
+    --k-good-wash: #e4f2e8;
+    --k-alert: #9b2c22;
+    --k-alert-wash: #fbe9e7;
+    --k-muted: #4f6165;
+}
+
+body.kiosk {
+    background-color: var(--k-sand);
+    color: var(--k-ink);
+    font-size: 20px;
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    /* A terminal has no scroll wheel and no text to select. */
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Header and footer ------------------------------------------------------ */
+
+.kiosk-header {
+    background-color: var(--k-ink);
+    color: #fff;
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.kiosk-brand {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+}
+
+.kiosk-branch {
+    font-size: 1.125rem;
+    color: #b9cdcf;
+}
+
+.kiosk-main {
+    flex: 1;
+    width: 100%;
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 3rem 2rem 4rem;
+}
+
+.kiosk-footer {
+    background-color: var(--k-ink);
+    color: #b9cdcf;
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 1.125rem;
+}
+
+.kiosk-home {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    padding: 0.5rem 0;
+}
+
+/* Type scale ------------------------------------------------------------- */
+
+.kiosk-title {
+    font-size: 3.25rem;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 2.5rem;
+}
+
+.kiosk-subtitle {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 2.5rem 0 1rem;
+}
+
+.kiosk-greeting {
+    font-size: 1.75rem;
+    margin: 0 0 2rem;
+}
+
+.kiosk-hint {
+    font-size: 1.125rem;
+    color: var(--k-muted);
+    margin: 1.5rem 0 0;
+}
+
+/* Home screen choices ----------------------------------------------------
+   Full-width bands rather than a grid of cards: a band is a bigger target,
+   and it reads as a list of things to do instead of a gallery of products.
+   Borrowing is most of what happens here, so it carries the solid fill and
+   the other two stay outlined. */
+
+.kiosk-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.kiosk-choice {
+    display: block;
+    min-height: 7rem;
+    padding: 1.75rem 2rem;
+    border: 2px solid var(--k-line);
+    border-radius: 10px;
+    background-color: var(--k-paper);
+    color: var(--k-ink);
+    text-decoration: none;
+    transition: transform 120ms ease;
+}
+
+.kiosk-choice:first-child {
+    background-color: var(--k-teal);
+    border-color: var(--k-teal);
+    color: #fff;
+}
+
+.kiosk-choice:first-child .kiosk-choice-hint {
+    color: #d3e7e6;
+}
+
+.kiosk-choice:active {
+    transform: scale(0.99);
+    background-color: var(--k-sand);
+    border-color: var(--k-teal);
+}
+
+.kiosk-choice:first-child:active {
+    background-color: var(--k-teal-deep);
+    border-color: var(--k-teal-deep);
+}
+
+.kiosk-choice-title {
+    display: block;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.kiosk-choice-hint {
+    display: block;
+    font-size: 1.125rem;
+    color: var(--k-muted);
+    margin-top: 0.35rem;
+}
+
+/* The form ---------------------------------------------------------------
+   The input is the whole interaction, so it is the loudest thing on screen.
+   The rule under it fills solid on focus: at arm's length that movement is
+   what tells somebody the machine is listening. */
+
+.kiosk-form {
+    margin-top: 1rem;
+}
+
+.kiosk-label {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.kiosk-input {
+    display: block;
+    width: 100%;
+    font-size: 3rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 1rem 1.25rem;
+    background-color: var(--k-paper);
+    color: var(--k-ink);
+    border: 2px solid var(--k-line);
+    border-bottom-width: 6px;
+    border-bottom-color: var(--k-teal);
+    border-radius: 8px 8px 0 0;
+}
+
+.kiosk-input::placeholder {
+    color: #b3bfc1;
+    font-weight: 400;
+}
+
+.kiosk-input:focus {
+    outline: none;
+    border-color: var(--k-teal);
+    border-bottom-width: 10px;
+    box-shadow: 0 0 0 4px rgba(31, 111, 107, 0.18);
+}
+
+.kiosk-button {
+    display: block;
+    width: 100%;
+    min-height: 5.5rem;
+    margin-top: 1.75rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: var(--k-teal);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.kiosk-button:active {
+    background-color: var(--k-teal-deep);
+}
+
+.kiosk-secondary {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 1rem 2rem;
+    min-height: 4rem;
+    font-size: 1.25rem;
+    color: var(--k-ink);
+    background-color: transparent;
+    border: 2px solid var(--k-line);
+    border-radius: 10px;
+    text-decoration: none;
+}
+
+.kiosk-secondary:active {
+    background-color: var(--k-paper);
+}
+
+/* Banners ----------------------------------------------------------------
+   The only animated thing in the interface. A confirmation has to catch the
+   eye of somebody already reaching for their bag. */
+
+.kiosk-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem 1.75rem;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    line-height: 1.35;
+    margin-bottom: 2rem;
+    animation: kiosk-banner-in 260ms ease-out;
+}
+
+.kiosk-banner-icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.kiosk-banner-good {
+    background-color: var(--k-good-wash);
+    color: #113d25;
+}
+
+.kiosk-banner-good .kiosk-banner-icon {
+    background-color: var(--k-good);
+}
+
+.kiosk-banner-bad {
+    background-color: var(--k-alert-wash);
+    color: #6d1f18;
+}
+
+.kiosk-banner-bad .kiosk-banner-icon {
+    background-color: var(--k-alert);
+}
+
+@keyframes kiosk-banner-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* Account summary -------------------------------------------------------- */
+
+.kiosk-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.kiosk-stat {
+    background-color: var(--k-paper);
+    border: 2px solid var(--k-line);
+    border-radius: 10px;
+    padding: 1.25rem;
+}
+
+.kiosk-stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.kiosk-stat-label {
+    display: block;
+    font-size: 1.125rem;
+    color: var(--k-muted);
+    margin-top: 0.25rem;
+}
+
+.kiosk-stat-alert {
+    border-color: var(--k-alert);
+}
+
+.kiosk-stat-alert .kiosk-stat-number {
+    color: var(--k-alert);
+}
+
+/* Lists ------------------------------------------------------------------ */
+
+.kiosk-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.kiosk-list li {
+    background-color: var(--k-paper);
+    border: 2px solid var(--k-line);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.kiosk-list-alert {
+    border-color: var(--k-alert);
+}
+
+.kiosk-list-main {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.kiosk-list-sub {
+    display: block;
+    font-size: 1.125rem;
+    color: var(--k-muted);
+    margin-top: 0.25rem;
+}
+
+.kiosk-list-alert .kiosk-list-sub {
+    color: var(--k-alert);
+}
+
+/* Item lookup result ----------------------------------------------------- */
+
+.kiosk-result {
+    background-color: var(--k-paper);
+    border: 2px solid var(--k-line);
+    border-left-width: 10px;
+    border-left-color: var(--k-teal);
+    border-radius: 10px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.kiosk-result-type {
+    display: inline-block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--k-teal-deep);
+    background-color: rgba(31, 111, 107, 0.12);
+    border-radius: 4px;
+    padding: 0.2rem 0.6rem;
+}
+
+.kiosk-result-title {
+    font-size: 2.25rem;
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0.75rem 0 0.25rem;
+}
+
+.kiosk-result-sub {
+    font-size: 1.25rem;
+    color: var(--k-muted);
+    margin: 0 0 1rem;
+}
+
+.kiosk-result-good,
+.kiosk-result-wait {
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.kiosk-result-good { color: var(--k-good); }
+.kiosk-result-wait { color: var(--k-alert); }
+
+/* Keyboard access -------------------------------------------------------- */
+
+.kiosk a:focus-visible,
+.kiosk button:focus-visible,
+.kiosk input:focus-visible {
+    outline: 4px solid var(--k-teal);
+    outline-offset: 3px;
+}
+
+/* Smaller screens --------------------------------------------------------
+   A kiosk is usually a fixed large display, but the same routes are reachable
+   from a phone in the foyer, so the scale steps down rather than breaking. */
+
+@media (max-width: 575.98px) {
+    body.kiosk { font-size: 18px; }
+    .kiosk-main { padding: 2rem 1rem 3rem; }
+    .kiosk-title { font-size: 2.25rem; margin-bottom: 1.75rem; }
+    .kiosk-choice-title { font-size: 1.5rem; }
+    .kiosk-input { font-size: 2rem; }
+    .kiosk-button { min-height: 4.5rem; font-size: 1.375rem; }
+    .kiosk-result-title { font-size: 1.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kiosk-banner { animation: none; }
+    .kiosk-choice { transition: none; }
+    .kiosk-choice:active { transform: none; }
+}

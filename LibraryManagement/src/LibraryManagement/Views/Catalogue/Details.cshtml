@@ -1,0 +1,93 @@
+@model Item
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Catalogue</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <span class="kind-tag">@Model.ItemType</span>
+        <h1 class="h2 mt-2">@Model.Name</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.Summary))
+        {
+            <p class="lead">@Model.Summary</p>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p>@Model.Description</p>
+        }
+
+        <dl class="row detail-list">
+            <dt class="col-sm-4">Library code</dt>
+            <dd class="col-sm-8"><span class="code-line">@Model.LibraryCode</span></dd>
+
+            <dt class="col-sm-4">Status</dt>
+            <dd class="col-sm-8"><partial name="_StatusBadge" model="Model.Status" /></dd>
+
+            <dt class="col-sm-4">Held at</dt>
+            <dd class="col-sm-8">@(Model.Branch?.Name ?? "Not recorded")</dd>
+
+            @if (Model is Book book)
+            {
+                <dt class="col-sm-4">Author</dt>
+                <dd class="col-sm-8">@(book.Author ?? "Not recorded")</dd>
+                <dt class="col-sm-4">Genre</dt>
+                <dd class="col-sm-8">@(book.Genre ?? "Not recorded")</dd>
+                <dt class="col-sm-4">Published</dt>
+                <dd class="col-sm-8">@(book.YearPublished?.ToString() ?? "Not recorded")</dd>
+                <dt class="col-sm-4">ISBN</dt>
+                <dd class="col-sm-8">@(book.Isbn ?? "Not recorded")</dd>
+            }
+            else if (Model is MusicRecording music)
+            {
+                <dt class="col-sm-4">Artist</dt>
+                <dd class="col-sm-8">@(music.Artist ?? "Not recorded")</dd>
+                <dt class="col-sm-4">Released</dt>
+                <dd class="col-sm-8">@(music.YearReleased?.ToString() ?? "Not recorded")</dd>
+                <dt class="col-sm-4">Format</dt>
+                <dd class="col-sm-8">@(music.Format ?? "Not recorded")</dd>
+                <dt class="col-sm-4">Label</dt>
+                <dd class="col-sm-8">@(music.Label ?? "Not recorded")</dd>
+            }
+            else if (Model is Toy toy)
+            {
+                <dt class="col-sm-4">Kind of toy</dt>
+                <dd class="col-sm-8">@(toy.ToyType ?? "Not recorded")</dd>
+                <dt class="col-sm-4">Suitable for</dt>
+                <dd class="col-sm-8">@(toy.MinimumAge.HasValue ? $"Ages {toy.MinimumAge}+" : "Not recorded")</dd>
+                <dt class="col-sm-4">Pieces</dt>
+                <dd class="col-sm-8">@(toy.PieceCount?.ToString() ?? "Not recorded")</dd>
+            }
+        </dl>
+
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to results</a>
+    </div>
+
+    <div class="col-lg-4">
+        <aside class="info-card">
+            @if (Model.CanBeBorrowed)
+            {
+                <h2 class="h6">On the shelf</h2>
+                <p class="small mb-2">
+                    Quote <span class="code-line">@Model.LibraryCode</span> at the
+                    @(Model.Branch?.Name ?? "front") desk to borrow this.
+                </p>
+            }
+            else
+            {
+                <h2 class="h6">Not available right now</h2>
+                <p class="small mb-2">
+                    This item is @Model.Status.ToString().ToLower(). Ask at the desk to be put in the
+                    queue for it, and you will be told when it is ready.
+                </p>
+            }
+            <p class="small mb-0">@ViewData["LendingTerms"]</p>
+        </aside>
+    </div>
+</div>

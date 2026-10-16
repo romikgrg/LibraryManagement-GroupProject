@@ -1,0 +1,79 @@
+@model IReadOnlyList<LibraryManagement.Services.BranchInventory>
+@{
+    ViewData["Title"] = "Branches";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Branches</h1>
+        <p class="text-muted mb-0">Every location in the network, with what each one is holding.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Add a branch</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <h2 class="h5">No branches yet</h2>
+        <p class="mb-0 text-muted">Add the first location to start placing stock.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Branch</th>
+                <th scope="col">Held</th>
+                <th scope="col">Available</th>
+                <th scope="col">On loan</th>
+                <th scope="col">In transit</th>
+                <th scope="col">Holds</th>
+                <th scope="col">Open</th>
+                <th scope="col" class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var inventory in Model)
+            {
+                var branch = inventory.Branch!;
+                <tr>
+                    <td><span class="code-line">@branch.Code</span></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@branch.Id">@branch.Name</a>
+                        @if (!string.IsNullOrWhiteSpace(branch.Address))
+                        {
+                            <div class="small text-muted">@branch.Address</div>
+                        }
+                    </td>
+                    <td>@inventory.HeldHere</td>
+                    <td>
+                        @inventory.Available
+                        <span class="small text-muted">(@inventory.AvailabilityRate.ToString("0.0")%)</span>
+                    </td>
+                    <td>@inventory.OnLoan</td>
+                    <td>@inventory.InTransit</td>
+                    <td>@inventory.OpenReservations</td>
+                    <td>
+                        @if (branch.IsOpen)
+                        {
+                            <span class="status status-available">Open</span>
+                        }
+                        else
+                        {
+                            <span class="status status-destroyed">Closed</span>
+                        }
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@branch.Id">View</a>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@branch.Id">Edit</a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@branch.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
